@@ -1990,11 +1990,17 @@ var encodeTokenTests = []struct {
 	},
 	want: `foo`,
 }, {
-	desc: "char data with escaped chars",
+	desc: "char data with tab and newline characters",
 	toks: []Token{
 		CharData(" \t\n"),
 	},
-	want: " &#x9;\n",
+	want: " \t\n",
+}, {
+	desc: "char data with escaped chars",
+	toks: []Token{
+		CharData(" \"\n"),
+	},
+	want: " &#34;\n",
 }, {
 	desc: "comment",
 	toks: []Token{
