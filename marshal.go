@@ -218,7 +218,7 @@ func (enc *Encoder) EncodeToken(t Token) error {
 			return err
 		}
 	case EndElement:
-		if err := p.writeEnd(t.Name); err != nil {
+		if err := p.writeEnd(t.Name, t.Empty); err != nil {
 			return err
 		}
 	case CharData:
@@ -497,6 +497,7 @@ func (p *printer) marshalValue(val reflect.Value, finfo *fieldInfo, startTemplat
 	if startTemplate != nil {
 		start.Name = startTemplate.Name
 		start.Attr = append(start.Attr, startTemplate.Attr...)
+		start.Empty = startTemplate.Empty
 	} else if tinfo.xmlname != nil {
 		xmlname := tinfo.xmlname
 		if xmlname.name != "" {
@@ -571,7 +572,7 @@ func (p *printer) marshalValue(val reflect.Value, finfo *fieldInfo, startTemplat
 		return err
 	}
 
-	if err := p.writeEnd(start.Name); err != nil {
+	if err := p.writeEnd(start.Name, start.Empty); err != nil {
 		return err
 	}
 
@@ -714,7 +715,7 @@ func (p *printer) marshalTextInterface(val encoding.TextMarshaler, start StartEl
 		return err
 	}
 	EscapeText(p, text)
-	return p.writeEnd(start.Name)
+	return p.writeEnd(start.Name, start.Empty)
 }
 
 // writeStart writes the given start element.
@@ -752,11 +753,14 @@ func (p *printer) writeStart(start *StartElement) error {
 		p.EscapeString(attr.Value)
 		p.WriteByte('"')
 	}
+	if start.Empty {
+		p.WriteByte('/')
+	}
 	p.WriteByte('>')
 	return nil
 }
 
-func (p *printer) writeEnd(name Name) error {
+func (p *printer) writeEnd(name Name, empty bool) error {
 	if name.Local == "" {
 		return fmt.Errorf("xml: end tag with no name")
 	}
@@ -771,11 +775,13 @@ func (p *printer) writeEnd(name Name) error {
 	}
 	p.tags = p.tags[:len(p.tags)-1]
 
-	p.writeIndent(-1)
-	p.WriteByte('<')
-	p.WriteByte('/')
-	p.WriteString(name.Local)
-	p.WriteByte('>')
+	if !empty {
+		p.writeIndent(-1)
+		p.WriteByte('<')
+		p.WriteByte('/')
+		p.WriteString(name.Local)
+		p.WriteByte('>')
+	}
 	p.popPrefix()
 	return nil
 }
@@ -1089,7 +1095,7 @@ func (s *parentStack) trim(parents []string) error {
 		}
 	}
 	for i := len(s.stack) - 1; i >= split; i-- {
-		if err := s.p.writeEnd(Name{Local: s.stack[i]}); err != nil {
+		if err := s.p.writeEnd(Name{Local: s.stack[i]}, false); err != nil {
 			return err
 		}
 	}
