@@ -753,6 +753,9 @@ func (p *printer) writeStart(start *StartElement) error {
 		p.EscapeString(attr.Value)
 		p.WriteByte('"')
 	}
+	if start.Space {
+		p.WriteByte(' ')
+	}
 	if start.Empty {
 		p.WriteByte('/')
 	}
