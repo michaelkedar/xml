@@ -2012,9 +2012,9 @@ var encodeTokenTests = []struct {
 }, {
 	desc: "char data with escaped chars",
 	toks: []Token{
-		CharData("&"),
+		CharData("&\n"),
 	},
-	want: "&amp;",
+	want: "&amp;\n",
 }, {
 	desc: "comment",
 	toks: []Token{
