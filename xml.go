@@ -2002,7 +2002,8 @@ func escapeText(w io.Writer, s []byte, escape bool) error {
 
 // EscapeString writes to p the properly escaped XML equivalent
 // of the plain text data s.
-func (p *printer) EscapeString(s string) {
+// If escape is true, single quotes won't be escaped.
+func (p *printer) EscapeString(s string, escape bool) {
 	var esc []byte
 	last := 0
 	for i := 0; i < len(s); {
@@ -2012,6 +2013,9 @@ func (p *printer) EscapeString(s string) {
 		case '"':
 			esc = escQuot
 		case '\'':
+			if escape {
+				continue
+			}
 			esc = escApos
 		case '&':
 			esc = escAmp
